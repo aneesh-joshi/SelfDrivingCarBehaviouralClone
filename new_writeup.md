@@ -3,9 +3,9 @@
 [//]: # (Image References)
 
 [image1]: ./writeup_images/val_dec_inc.png "Validation Loss Decreases and Increases"
-[image2]: ./examples/placeholder.png "Grayscaling"
-[image3]: ./examples/placeholder_small.png "Recovery Image"
-[image4]: ./examples/placeholder_small.png "Recovery Image"
+[image2]: ./writeup_images/datasets.png "Dataset images"
+[image3]: ./writeup_images/shadow1.png "Shadow patch"
+[image4]: ./writeup_images/darkened.png "Darkened image"
 [image5]: ./examples/placeholder_small.png "Recovery Image"
 [image6]: ./examples/placeholder_small.png "Normal Image"
 [image7]: ./examples/placeholder_small.png "Flipped Image"
@@ -108,7 +108,11 @@ The model was trained and validated on different data sets to ensure that the mo
 The model was then tested by running it through the simulator and ensuring that the vehicle could stay on the track.
 
 I also monitored the metrics of the training to ensure that overfitting hasn't occured. For example, while experimenting, I would make the model run for several epochs. Typically, the validation loss would decrease upto a certain epoch length and begin increasing again. The next time, I would train only upto that epoch.
-[image1]
+
+![alt-text][image1]
+
+Here, I find that 5 epochs is enough.
+
 
 I didn't feel the need to add dropout and felt that the model performed worse with it.
 
@@ -120,22 +124,26 @@ I tuned this by studying the validation loss metrics and stopping training when 
 
 #### Is the training data chosen appropriately?
 
-I made several data sets until I got one which works. [TODO add image]
+I made several data sets until I got one which works.
+
+![alt-text][image2]
+
+As can be seen, I made several attempts to diagnose the data.
+Some folder have just one lap while others have that one plus reverse.
+One of the folders has the car driving very close to the edges (A very bad idea for a robust model). 
+
 The finalised data set was made by including:
-[TODO see how to make a list]
-1.) A normal lap
-
-2.) A lap in the opposite direction
-
-3.) A lap with only recording the recovery scenarios
+1. A normal lap
+2. A lap in the opposite direction
+3. A lap with only recording the recovery scenarios
 
 The recovery scenarios were made by 
-* going to the edge of the road
-* stopping the car
-* turning the wheel
-* recording the car in a stationary position for a while
-* moving the vehicle into the center
-* stopping recording
+1. going to the edge of the road
+2. stopping the car
+3. turning the wheel
+4. recording the car in a stationary position for a while
+5. moving the vehicle into the center
+6. stopping recording
 
 The reason behind stopping the car was to ensure that several frames were captured with the recovery conditions.
 
@@ -147,16 +155,16 @@ Using only the center images don't give a good idea of the right and left edge c
 **Data Augmentation:**
 
 I made several augmentations in the generator to make it more general:
-1. Flipping:
+**1. Flipping:**
 I made the generator flip the image and negate the steering angle with a probablity of `FLIP_PROB` which was set to 0.25
 This was done to ensure the model wouldn't be biased towards turning left (as the track was mostly leftwards).
-2. Shadows:
+**2. Shadows:**
 My initial models were easily distracted by the tree shadows. To tackle this, I introduced `SHADOW_PROB` which was set to 0.5
 This added a random rectangular shadow patch in the images with a probablity of 50%
-[TODO] add sample images
-3. Image Darkening:
+![alt-text][image3]
+**3. Image Darkening:**
 When I tried my model on the challenge track, I saw that the model often had to handle low lighting condition. I introduced `DARKEN_PROB` which was set to 0.4 to randomly darken the image.
-[TODO add image]
+![alt-text][image4]
 
 
 examples of images from the dataset must be included. [TODO]

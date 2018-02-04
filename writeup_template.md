@@ -77,7 +77,7 @@ When I tried my model on the challenge track, I saw that the model often had to 
 
 For a long time, I was using the wrong metrics to evaluate my model as it trained. I was intially using validation accuracy, but this metric is incorrect for a regression problem. I kept getting a validation accuracy of 40% and I was confused why it didn't improve.
 Later, I moved to mean squared error which gave more  meaningful results.
-
+	
 The model was trained and validated on different data sets to ensure that the model was not overfitting (code line 10-16). These data sets were made by splitting the total training samples into  a train-test split of 80-20 respectively.
 The model was then tested by running it through the simulator and ensuring that the vehicle could stay on the track.
 
