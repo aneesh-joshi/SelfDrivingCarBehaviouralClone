@@ -49,7 +49,17 @@ The specific code can be seen from [TODO]
 ### Model Architecture and Training Strategy
 
 #### 1. An appropriate model architecture has been employed
-##### The model architecture is as shown below:
+
+I used the NVIDIA model for making my regression model.
+It consists of:
+1.) 3 5x5 convolutions
+2.) 2 3x3 convolutions
+3.) 100 Fully Connected Neurons
+4.) 50 Fully Connected Neurons
+5.) 10 Fully Connected Neurons
+6.) 1 Fully Connected Neuron
+
+More details on this later
 
 #### 2. Attempts to reduce overfitting in the model
 
@@ -57,23 +67,22 @@ I made several augmentations in the generator to make it more general:
 1. Flipping:
 I made the generator flip the image and negate the steering angle with a probablity of `FLIP_PROB` which was set to 0.25
 This was done to ensure the model wouldn't be biased towards turning left (as the track was mostly leftwards).
-
 2. Shadows:
 My initial models were easily distracted by the tree shadows. To tackle this, I introduced `SHADOW_PROB` which was set to 0.5
 This added a random rectangular shadow patch in the images with a probablity of 50%
 [TODO] add sample images
-
 3. Image Darkening:
 When I tried my model on the challenge track, I saw that the model often had to handle low lighting condition. I introduced `DARKEN_PROB` which was set to 0.4 to randomly darken the image.
 [TODO add image]
 
-
 For a long time, I was using the wrong metrics to evaluate my model as it trained. I was intially using validation accuracy, but this metric is incorrect for a regression problem. I kept getting a validation accuracy of 40% and I was confused why it didn't improve.
 Later, I moved to mean squared error which gave more  meaningful results.
 
-The model contains dropout layers in order to reduce overfitting (model.py lines 21). 
+The model was trained and validated on different data sets to ensure that the model was not overfitting (code line 10-16). These data sets were made by splitting the total training samples into  a train-test split of 80-20 respectively.
+The model was then tested by running it through the simulator and ensuring that the vehicle could stay on the track.
 
-The model was trained and validated on different data sets to ensure that the model was not overfitting (code line 10-16). The model was tested by running it through the simulator and ensuring that the vehicle could stay on the track.
+I also monitored the metrics of the training to ensure that overfitting hasn't occured. For example, while experimenting, I would make the model run for several epochs. Typically, the validation loss would decrease upto a certain epoch length and begin increasing again. The next time, I would train only upto that epoch.
+[TODO insert image]
 
 #### 3. Model parameter tuning
 
@@ -95,29 +104,24 @@ The finalised data set was made by including:
 
 #### 1. Solution Design Approach
 
-I experimented a lot with the architectures to get a good model. This was based on the initial assumption that my model's performance was very strongly dependent on the architecture.
+I experimented a lot with the architectures to get a good model. This was based on the initial assumption that my model's performance was very strongly dependent on the architecture. (an assumption which was somewhat incorrect (more on this later))
 
-As a result, I ended up trying several different architectures.
+As a result, I ended up trying several different architectures:
 First, I tried an architecture with fewer convolutions and more fully connected layers. However, this made the number of parameters blow up to 16 million. This was unnecessary and simply unfeasible on my 8GBs of RAM with only CPU
-Searching for a better method, I decided to give transfer learning a chance. I downloaded VGG16 and trained on that. This made the parameters lesser but not by much; it was still in the millions.
-Finally, I settled on using the NVIDIA architecture as it had the least parameters.
+
+Searching for a better method, I decided to give transfer learning a chance. I downloaded VGG16, added fresh fully connected layers and trained on that. This made the parameters lesser but not by much; it was still in the millions. I tried freezing the VGG16 parameters, but to no avail.
+
+Finally, I settled on using the NVIDIA architecture as it had the least parameters (348 thousand).
 
 This exercise in architecture search made me realize the importance of keeping the number of parameters less.
-I learned that adding more convolutions will reduce the feature space, resulting in lesser parameters for the first fully connected layer after the convolutions.
+I learned that adding more convolutions will reduce the feature space, resulting in lesser parameters for the first fully connected layer after the convolutions are flattened.
 
-In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I found that my first model had a low mean squared error on the training set but a high mean squared error on the validation set. This implied that the model was overfitting. 
-
-To combat the overfitting, I modified the model so that ...
-
-Then I ... 
-
-The final step was to run the simulator to see how well the car was driving around track one. There were a few spots where the vehicle fell off the track... to improve the driving behavior in these cases, I ....
-
-At the end of the process, the vehicle is able to drive autonomously around the track without leaving the road.
+The NVIDIA model trained fast. This was a big advantage as I could now turn my focus to collecting and improving the training data.
 
 #### 2. Final Model Architecture
 
-The final model architecture (model.py lines [TODO]) consisted of a convolution neural network with the following layers and layer sizes ...
+The final model architecture (model.py lines [TODO]) 
+It is represented below:
 
 ```
 ____________________________________________________________________________________________________
@@ -154,8 +158,7 @@ Non-trainable params: 0
 
 
 Here is a visualization of the architecture (note: visualizing the architecture is optional according to the project rubric)
-
-![alt text][image1]
+[TODO]
 
 #### 3. Creation of the Training Set & Training Process
 

@@ -1,10 +1,8 @@
 import keras
 
-from pprint import pprint
-
 from keras.models import Sequential
-from keras.layers import Flatten, Dense, Convolution2D, Lambda, Cropping2D, MaxPooling2D, Dropout
-from keras.callbacks import EarlyStopping
+from keras.layers import Flatten, Dense, Convolution2D, Lambda, Cropping2D
+from keras.models import model_from_json
 
 import csv, cv2
 import matplotlib.image as mpimg
@@ -13,9 +11,7 @@ import numpy as np
 import sklearn
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
-from keras.models import model_from_json
 
-from keras.layers.advanced_activations import ELU
 from utils import darken_image, add_shadow
 
 def generator(samples, batch_size=32, steering_coef=0.2, flip_prob=0, shadow_prob=0, darken_prob=0):
@@ -32,38 +28,35 @@ def generator(samples, batch_size=32, steering_coef=0.2, flip_prob=0, shadow_pro
                 for i in range(3):
 
                     name = batch_sample[i].split('/')[-1]
-
-                    center_image = mpimg.imread(name)
+                    image = mpimg.imread(name)
 
                     if i == 0:
-                        center_angle = float(batch_sample[3])
+                        steering_angle = float(batch_sample[3])
                     elif i == 1:
-                        center_angle = float(batch_sample[3]) + steering_coef
+                        steering_angle = float(batch_sample[3]) + steering_coef
                     else:
-                        center_angle = float(batch_sample[3]) - steering_coef
-
+                        steering_angle = float(batch_sample[3]) - steering_coef
 
                     # RANDOM FLIP
                     if flip_prob > 0:
                         if np.random.random() < flip_prob:
-                            center_image = cv2.flip(center_image, 1)
-                            center_angle = -1. * center_angle
+                            image = cv2.flip(image, 1)
+                            steering_angle = -1. * steering_angle
 
                     made_shadow = False
                     # SHADOW ADD
                     if shadow_prob > 0:
                         if np.random.random() < shadow_prob:
                             made_shadow = True
-                            center_image = add_shadow(center_image)
-                            
-                            
+                            image = add_shadow(image)
+                           
                     # MAKE DARK
                     if darken_prob > 0 and made_shadow == False:
                         if np.random.random() < darken_prob:
-                            center_image = darken_image(center_image)
+                            image = darken_image(image)
 
-                    images.append(center_image)
-                    angles.append(center_angle)
+                    images.append(image)
+                    angles.append(steering_angle)
 
             X_train = np.array(images)
             y_train = np.array(angles)
@@ -71,14 +64,7 @@ def generator(samples, batch_size=32, steering_coef=0.2, flip_prob=0, shadow_pro
             yield sklearn.utils.shuffle(X_train, y_train)
 
 # DATA PATH ===============================================================
-path = 'data/data/'
-path = 'data/mouse/'
-path = 'data/mouse_data_almost_correct/'
-path = 'data/last_hope/'
-path = 'data/new_hope_w_corrections_reverse/'
-path = 'data/mouse_data/'
-path = 'data/mouse_data_w_reverse/'
-path = 'data/finale/'
+path = 'data/final/'
 # =========================================================================
 
 samples = []
@@ -88,6 +74,7 @@ with open(path + 'driving_log.csv') as csvfile:
         if i != 0:
             samples.append(line)
 
+# SHUFFLE AND MAKE TRAIN TEST SPLIT
 samples = shuffle(samples)
 train_samples, validation_samples = train_test_split(samples, test_size=0.2)
 
@@ -125,12 +112,11 @@ if check_samples:
             plt.title(str(y[i]))
             plt.show()
 
-
 # HYPERPARAMETERS ==========================================================
-learning_rate = 1e-4
 activation = 'relu'
 
 # DEFINE MODEL=================================================================
+model_name = 'model'
 model = Sequential()
 
 # PREPROCESSING =============================================
@@ -154,12 +140,7 @@ model.add(Dense(1))
 
 model.summary()
 
-
-
 # RETRAIN MODEL =====================================================
-
-model_name = 'finale'
-
 retrain_model = False
 if retrain_model:
     json_file = open(model_name + '.json', 'r')
@@ -176,7 +157,7 @@ if retrain_model:
 model.compile(  loss='mse',
                 optimizer='adadelta',
                 metrics=['mse']
-                )
+             )
 
 # TRAIN MODEL ==========================================================
 history = model.fit_generator( train_generator,
@@ -189,30 +170,12 @@ history = model.fit_generator( train_generator,
 model.save(model_name + '.h5')
 print('MODEL SAVED')
 
-# model_json = model.to_json()
-# with open(model_name + ".json", "w") as json_file:
-#     json_file.write(model_json)
+model_json = model.to_json()
+with open(model_name + ".json", "w") as json_file:
+    json_file.write(model_json)
 
 # PLOT METRICS ========================================================
 print(history.history['val_mean_squared_error'])
 plt.plot(history.history['mean_squared_error'])
 plt.plot(history.history['val_mean_squared_error'])
-# # plt.plot(history.history['mean_absolute_error'])
-# # plt.plot(history.history['mean_absolute_percentage_error'])
-# # plt.plot(history.history['cosine_proximity'])
 plt.show()
-
-# plt.plot(history.history['val_mean_squared_error'])
-# # plt.plot(history.history['val_mean_absolute_error'])
-# # plt.plot(history.history['val_mean_absolute_percentage_error'])
-# # plt.plot(history.history['val_cosine_proximity'])
-# plt.show()
-
-
-
-# plt.plot(history.history['mse'])
-# plt.title('model mean squared error loss')
-# plt.ylabel('mean squared error loss')
-# plt.xlabel('epoch')
-# plt.legend(['training set', 'validation set'], loc='upper right')
-# plt.show()
