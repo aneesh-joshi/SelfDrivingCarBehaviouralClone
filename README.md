@@ -7,4 +7,6 @@ Once the model is generated, we can test it on the track. It takes in an image f
 
 A more detailed explanation can be found [here](https://github.com/aneesh-joshi/SelfDrivingCarBehaviouralClone/blob/master/writeup.md)
 
+The video of the car driving on a track can be found [here](https://github.com/aneesh-joshi/SelfDrivingCarBehaviouralClone/blob/master/video.mp4)
+
 ![here's an example](https://github.com/aneesh-joshi/SelfDrivingCarBehaviouralClone/blob/master/writeup_images/SampleImage2.PNG)
