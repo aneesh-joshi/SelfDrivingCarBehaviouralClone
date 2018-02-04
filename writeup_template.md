@@ -1,9 +1,4 @@
-# **Behavioral Cloning** 
-
-## Writeup Template
-
-### You can use this file as a template for your writeup if you want to submit it as a markdown file, but feel free to use some other method and submit a pdf if you prefer.
-
+# **Behavioral Cloning WriteUp** 
 ---
 
 **Behavioral Cloning Project**
@@ -35,30 +30,88 @@ The goals / steps of this project are the following:
 #### 1. Submission includes all required files and can be used to run the simulator in autonomous mode
 
 My project includes the following files:
-* model.py containing the script to create and train the model
-* drive.py for driving the car in autonomous mode
-* model.h5 containing a trained convolution neural network 
-* writeup_report.md or writeup_report.pdf summarizing the results
+* `model.py` containing the script to create and train the model
+* `drive.py` for driving the car in autonomous mode
+* `model.h5` containing a trained convolution neural network 
+* `writeup_report.md` summarizing the results
 
 #### 2. Submission includes functional code
 Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing 
-```sh
+```
 python drive.py model.h5
 ```
 
 #### 3. Submission code is usable and readable
 
 The model.py file contains the code for training and saving the convolution neural network. The file shows the pipeline I used for training and validating the model, and it contains comments to explain how the code works.
+The specific code can be seen from [TODO]
 
 ### Model Architecture and Training Strategy
 
 #### 1. An appropriate model architecture has been employed
+##### The model architecture is as shown below:
+```
+____________________________________________________________________________________________________
+Layer (type)                     Output Shape          Param #     Connected to
+====================================================================================================
+lambda_1 (Lambda)                (None, 160, 320, 3)   0           lambda_input_1[0][0]
+____________________________________________________________________________________________________
+cropping2d_1 (Cropping2D)        (None, 65, 320, 3)    0           lambda_1[0][0]
+____________________________________________________________________________________________________
+convolution2d_1 (Convolution2D)  (None, 31, 158, 24)   1824        cropping2d_1[0][0]
+____________________________________________________________________________________________________
+convolution2d_2 (Convolution2D)  (None, 14, 77, 36)    21636       convolution2d_1[0][0]
+____________________________________________________________________________________________________
+convolution2d_3 (Convolution2D)  (None, 5, 37, 48)     43248       convolution2d_2[0][0]
+____________________________________________________________________________________________________
+convolution2d_4 (Convolution2D)  (None, 3, 35, 64)     27712       convolution2d_3[0][0]
+____________________________________________________________________________________________________
+convolution2d_5 (Convolution2D)  (None, 1, 33, 64)     36928       convolution2d_4[0][0]
+____________________________________________________________________________________________________
+flatten_1 (Flatten)              (None, 2112)          0           convolution2d_5[0][0]
+____________________________________________________________________________________________________
+dense_1 (Dense)                  (None, 100)           211300      flatten_1[0][0]
+____________________________________________________________________________________________________
+dense_2 (Dense)                  (None, 50)            5050        dense_1[0][0]
+____________________________________________________________________________________________________
+dense_3 (Dense)                  (None, 10)            510         dense_2[0][0]
+____________________________________________________________________________________________________
+dense_4 (Dense)                  (None, 1)             11          dense_3[0][0]
+====================================================================================================
+Total params: 348,219
+Trainable params: 348,219
+Non-trainable params: 0
+```
 
-My model consists of a convolution neural network with 3x3 filter sizes and depths between 32 and 128 (model.py lines 18-24) 
+I experimented a lot with the architectures to get a good model. This was based on the initial assumption that my model's performance was very strongly dependent on the architecture.
 
-The model includes RELU layers to introduce nonlinearity (code line 20), and the data is normalized in the model using a Keras lambda layer (code line 18). 
+As a result, I ended up trying several different architectures.
+First, I tried an architecture with fewer convolutions and more fully connected layers. However, this made the number of parameters blow up to 16 million. This was unnecessary and simply unfeasible on my 8GBs of RAM with only CPU
+Searching for a better method, I decided to give transfer learning a chance. I downloaded VGG16 and trained on that. This made the parameters lesser but not by much; it was still in the millions.
+Finally, I settled on using the NVIDIA architecture as it had the least parameters.
+
+This exercise in architecture search made me realize the importance of keeping the number of parameters less.
+I learned that adding more convolutions will reduce the feature space, resulting in lesser parameters for the first fully connected layer after the convolutions.
 
 #### 2. Attempts to reduce overfitting in the model
+
+I made several augmentations in the generator to make it more general:
+1. Flipping:
+I made the generator flip the image and negate the steering angle with a probablity of `FLIP_PROB` which was set to 0.25
+This was done to ensure the model wouldn't be biased towards turning left (as the track was mostly leftwards).
+
+2. Shadows:
+My initial models were easily distracted by the tree shadows. To tackle this, I introduced `SHADOW_PROB` which was set to 0.5
+This added a random rectangular shadow patch in the images with a probablity of 50%
+[TODO] add sample images
+
+3. Image Darkening:
+When I tried my model on the challenge track, I saw that the model often had to handle low lighting condition. I introduced `DARKEN_PROB` which was set to 0.4 to randomly darken the image.
+[TODO add image]
+
+
+For a long time, I was using the wrong metrics to evaluate my model as it trained. I was intially using validation accuracy, but this metric is incorrect for a regression problem. I kept getting a validation accuracy of 40% and I was confused why it didn't improve.
+Later, I moved to mean squared error which gave more  meaningful results.
 
 The model contains dropout layers in order to reduce overfitting (model.py lines 21). 
 
@@ -66,13 +119,16 @@ The model was trained and validated on different data sets to ensure that the mo
 
 #### 3. Model parameter tuning
 
-The model used an adam optimizer, so the learning rate was not tuned manually (model.py line 25).
+The model used an Adadelta optimizer, so the learning rate was not tuned manually (model.py line [TODO]).
 
 #### 4. Appropriate training data
 
-Training data was chosen to keep the vehicle driving on the road. I used a combination of center lane driving, recovering from the left and right sides of the road ... 
+I made several data sets until I got one which works. [TODO add image]
+The finalised data set was made by including:
+1.) A normal lap
+2.) A lap in the opposite direction
+3.) A lap with only recording the recovery scenarios
 
-For details about how I created the training data, see the next section. 
 
 ### Model Architecture and Training Strategy
 
