@@ -50,48 +50,6 @@ The specific code can be seen from [TODO]
 
 #### 1. An appropriate model architecture has been employed
 ##### The model architecture is as shown below:
-```
-____________________________________________________________________________________________________
-Layer (type)                     Output Shape          Param #     Connected to
-====================================================================================================
-lambda_1 (Lambda)                (None, 160, 320, 3)   0           lambda_input_1[0][0]
-____________________________________________________________________________________________________
-cropping2d_1 (Cropping2D)        (None, 65, 320, 3)    0           lambda_1[0][0]
-____________________________________________________________________________________________________
-convolution2d_1 (Convolution2D)  (None, 31, 158, 24)   1824        cropping2d_1[0][0]
-____________________________________________________________________________________________________
-convolution2d_2 (Convolution2D)  (None, 14, 77, 36)    21636       convolution2d_1[0][0]
-____________________________________________________________________________________________________
-convolution2d_3 (Convolution2D)  (None, 5, 37, 48)     43248       convolution2d_2[0][0]
-____________________________________________________________________________________________________
-convolution2d_4 (Convolution2D)  (None, 3, 35, 64)     27712       convolution2d_3[0][0]
-____________________________________________________________________________________________________
-convolution2d_5 (Convolution2D)  (None, 1, 33, 64)     36928       convolution2d_4[0][0]
-____________________________________________________________________________________________________
-flatten_1 (Flatten)              (None, 2112)          0           convolution2d_5[0][0]
-____________________________________________________________________________________________________
-dense_1 (Dense)                  (None, 100)           211300      flatten_1[0][0]
-____________________________________________________________________________________________________
-dense_2 (Dense)                  (None, 50)            5050        dense_1[0][0]
-____________________________________________________________________________________________________
-dense_3 (Dense)                  (None, 10)            510         dense_2[0][0]
-____________________________________________________________________________________________________
-dense_4 (Dense)                  (None, 1)             11          dense_3[0][0]
-====================================================================================================
-Total params: 348,219
-Trainable params: 348,219
-Non-trainable params: 0
-```
-
-I experimented a lot with the architectures to get a good model. This was based on the initial assumption that my model's performance was very strongly dependent on the architecture.
-
-As a result, I ended up trying several different architectures.
-First, I tried an architecture with fewer convolutions and more fully connected layers. However, this made the number of parameters blow up to 16 million. This was unnecessary and simply unfeasible on my 8GBs of RAM with only CPU
-Searching for a better method, I decided to give transfer learning a chance. I downloaded VGG16 and trained on that. This made the parameters lesser but not by much; it was still in the millions.
-Finally, I settled on using the NVIDIA architecture as it had the least parameters.
-
-This exercise in architecture search made me realize the importance of keeping the number of parameters less.
-I learned that adding more convolutions will reduce the feature space, resulting in lesser parameters for the first fully connected layer after the convolutions.
 
 #### 2. Attempts to reduce overfitting in the model
 
@@ -125,8 +83,11 @@ The model used an Adadelta optimizer, so the learning rate was not tuned manuall
 
 I made several data sets until I got one which works. [TODO add image]
 The finalised data set was made by including:
+
 1.) A normal lap
+
 2.) A lap in the opposite direction
+
 3.) A lap with only recording the recovery scenarios
 
 
@@ -134,9 +95,15 @@ The finalised data set was made by including:
 
 #### 1. Solution Design Approach
 
-The overall strategy for deriving a model architecture was to ...
+I experimented a lot with the architectures to get a good model. This was based on the initial assumption that my model's performance was very strongly dependent on the architecture.
 
-My first step was to use a convolution neural network model similar to the ... I thought this model might be appropriate because ...
+As a result, I ended up trying several different architectures.
+First, I tried an architecture with fewer convolutions and more fully connected layers. However, this made the number of parameters blow up to 16 million. This was unnecessary and simply unfeasible on my 8GBs of RAM with only CPU
+Searching for a better method, I decided to give transfer learning a chance. I downloaded VGG16 and trained on that. This made the parameters lesser but not by much; it was still in the millions.
+Finally, I settled on using the NVIDIA architecture as it had the least parameters.
+
+This exercise in architecture search made me realize the importance of keeping the number of parameters less.
+I learned that adding more convolutions will reduce the feature space, resulting in lesser parameters for the first fully connected layer after the convolutions.
 
 In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I found that my first model had a low mean squared error on the training set but a high mean squared error on the validation set. This implied that the model was overfitting. 
 
@@ -150,7 +117,41 @@ At the end of the process, the vehicle is able to drive autonomously around the 
 
 #### 2. Final Model Architecture
 
-The final model architecture (model.py lines 18-24) consisted of a convolution neural network with the following layers and layer sizes ...
+The final model architecture (model.py lines [TODO]) consisted of a convolution neural network with the following layers and layer sizes ...
+
+```
+____________________________________________________________________________________________________
+Layer (type)                     Output Shape          Param #     Connected to
+====================================================================================================
+lambda_1 (Lambda)                (None, 160, 320, 3)   0           lambda_input_1[0][0]
+____________________________________________________________________________________________________
+cropping2d_1 (Cropping2D)        (None, 65, 320, 3)    0           lambda_1[0][0]
+____________________________________________________________________________________________________
+convolution2d_1 (Convolution2D)  (None, 31, 158, 24)   1824        cropping2d_1[0][0]
+____________________________________________________________________________________________________
+convolution2d_2 (Convolution2D)  (None, 14, 77, 36)    21636       convolution2d_1[0][0]
+____________________________________________________________________________________________________
+convolution2d_3 (Convolution2D)  (None, 5, 37, 48)     43248       convolution2d_2[0][0]
+____________________________________________________________________________________________________
+convolution2d_4 (Convolution2D)  (None, 3, 35, 64)     27712       convolution2d_3[0][0]
+____________________________________________________________________________________________________
+convolution2d_5 (Convolution2D)  (None, 1, 33, 64)     36928       convolution2d_4[0][0]
+____________________________________________________________________________________________________
+flatten_1 (Flatten)              (None, 2112)          0           convolution2d_5[0][0]
+____________________________________________________________________________________________________
+dense_1 (Dense)                  (None, 100)           211300      flatten_1[0][0]
+____________________________________________________________________________________________________
+dense_2 (Dense)                  (None, 50)            5050        dense_1[0][0]
+____________________________________________________________________________________________________
+dense_3 (Dense)                  (None, 10)            510         dense_2[0][0]
+____________________________________________________________________________________________________
+dense_4 (Dense)                  (None, 1)             11          dense_3[0][0]
+====================================================================================================
+Total params: 348,219
+Trainable params: 348,219
+Non-trainable params: 0
+```
+
 
 Here is a visualization of the architecture (note: visualizing the architecture is optional according to the project rubric)
 
